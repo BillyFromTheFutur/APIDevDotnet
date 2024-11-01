@@ -12,7 +12,7 @@ namespace API
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddNewtonsoftJson();
             builder.Services.AddDbContext<SeriesDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("SeriesDbContextPgsql")));
 

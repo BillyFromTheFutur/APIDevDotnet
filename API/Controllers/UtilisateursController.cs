@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using API.Models.EntityFramework;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace API.Controllers
 {
@@ -73,6 +74,10 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> PutUtilisateur(int id, Utilisateur utilisateur)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             if (id != utilisateur.UtilisateurId)
             {
                 return BadRequest();
@@ -106,6 +111,10 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<Utilisateur>> PostUtilisateur(Utilisateur utilisateur)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             _context.Utilisateurs.Add(utilisateur);
             await _context.SaveChangesAsync();
 
@@ -127,7 +136,22 @@ namespace API.Controllers
 
         //    return NoContent();
         //}
+        [HttpPatch("{id:int}")]
+        public async Task<ActionResult<Utilisateur>> Patch(int id, [FromBody] JsonPatchDocument<Utilisateur> patchEntity)
+        {
+            //var utilisateur = await _context.Utilisateurs.SingleOrDefaultAsync(u => u.UtilisateurId == id);
 
+            var entity = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.UtilisateurId == id);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            patchEntity.ApplyTo(entity, ModelState); // Must have Microsoft.AspNetCore.Mvc.NewtonsoftJson installed
+
+            return entity;
+        }
         private bool UtilisateurExists(int id)
         {
             return _context.Utilisateurs.Any(e => e.UtilisateurId == id);

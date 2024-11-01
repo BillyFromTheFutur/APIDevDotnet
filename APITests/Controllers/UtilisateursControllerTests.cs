@@ -11,6 +11,9 @@ using System.Drawing.Imaging;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.ContentModel;
 using System.Xml;
+using System.Net;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace API.Controllers.Tests
 {
@@ -174,5 +177,34 @@ namespace API.Controllers.Tests
         //    };
         //    Assert.ThrowsException<System.AggregateException>(() => controller.PostUtilisateur(user).Result);
         //}
+
+        [TestMethod]
+        public void Postutilisateur_Regex()
+        {
+            Random rnd = new Random();
+            int chiffre = rnd.Next(1, 1000000000);
+            Utilisateur utilisateur = new Utilisateur()
+            {
+                Nom = "MACHIN",
+                Prenom = "Luc",
+                Mobile = "1",
+                Mail = "machin" + chiffre + "@gmail.com",
+                Pwd = "Toto1234!",
+                Rue = "Chemin de Bellevue",
+                CodePostal = "74940",
+                Ville = "Annecy-le-Vieux",
+                Pays = "France",
+                Latitude = null,
+                Longitude = null
+            };
+            string PhoneRegex = @"^0[0-9]{9}$";
+            Regex regex = new Regex(PhoneRegex);
+            if (!regex.IsMatch(utilisateur.Mobile))
+            {
+                controller.ModelState.AddModelError("Mobile", "Le n° de mobile doit contenir 10 chiffres"); 
+            }
+            var result = controller.PostUtilisateur(utilisateur).Result;
+            Assert.AreEqual(null,result.Value);
+        }
     }
 }
