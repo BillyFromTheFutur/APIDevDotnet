@@ -14,23 +14,24 @@ using System.Xml;
 using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using API.Models.DataManager;
+using API.Models.Repository;
 
 namespace API.Controllers.Tests
 {
     [TestClass()]
     public class UtilisateursControllerTests
     {
-        private readonly SeriesDbContext _context;
         private UtilisateursController controller;
+        private SeriesDbContext _context;
+        private IDataRepository<Utilisateur> dataRepository;
         public UtilisateursControllerTests()
         {
-            var builder = new DbContextOptionsBuilder<SeriesDbContext>()
-    .UseNpgsql("Server=localhost;port=5432;Database=SeriesDB;uid=postgres;password=postgres;");
-
+            var builder = new DbContextOptionsBuilder<SeriesDbContext>().UseNpgsql("Server=localhost;port=5432;Database=SeriesDB;uid=postgres;password=postgres;");
             _context = new SeriesDbContext(builder.Options);
-            controller = new UtilisateursController(_context);
+            dataRepository = new UtilisateurManager(_context);
+            controller = new UtilisateursController(dataRepository);
         }
-
 
 
         [TestMethod()]
@@ -48,7 +49,7 @@ namespace API.Controllers.Tests
         public async Task GetByIDSuccessTest()
         {
             int idUser = 22;
-            var result = await controller.GetById(22);
+            var result = await controller.GetUtilisateurById(22);
             var userInDB = _context.Utilisateurs.Where(c => c.UtilisateurId == idUser).FirstOrDefault();
 
             Assert.IsNotNull(result);
@@ -60,7 +61,7 @@ namespace API.Controllers.Tests
         {
 
             int idUser = 2220;
-            var result = await controller.GetById(idUser);
+            var result = await controller.GetUtilisateurById(idUser);
             
             Assert.IsNull(result.Value);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundObjectResult));
@@ -72,7 +73,7 @@ namespace API.Controllers.Tests
         public async Task GetByEmailSuccessTest()
         {
             string userEmail = "abramford2@businesswire.com";
-            var result = await controller.GetByEmail(userEmail);
+            var result = await controller.GetUtilisateurByEmail(userEmail);
             var userInDB = _context.Utilisateurs.Where(c => c.Mail == userEmail).FirstOrDefault();
 
             Assert.IsNotNull(result);
@@ -84,7 +85,7 @@ namespace API.Controllers.Tests
         {
 
             string userEmail = "fake@email.com";
-            var result = await controller.GetByEmail(userEmail);
+            var result = await controller.GetUtilisateurByEmail(userEmail);
 
             Assert.IsNull(result.Value);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundObjectResult));
