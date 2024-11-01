@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using API.Models.EntityFramework;
 using Microsoft.AspNetCore.JsonPatch;
+using API.Models.DataManager;
+using API.Models.Repository;
 
 namespace API.Controllers
 {
@@ -14,100 +16,79 @@ namespace API.Controllers
     [ApiController]
     public class UtilisateursController : ControllerBase
     {
-        private readonly SeriesDbContext _context;
+        //private readonly UtilisateurManager utilisateurmanager;
+        //private readonly SeriesDbContext _context;
+        private readonly IDataRepository<Utilisateur> dataRepository;
 
-        public UtilisateursController(SeriesDbContext context)
+        public UtilisateursController(IDataRepository<Utilisateur> dataRepo)
         {
-            _context = context;
+            dataRepository = dataRepo;
         }
-
         // GET: api/Utilisateurs
         [HttpGet]
-        //[ActionName("GetAllUtilisateurs")]
-        [ProducesResponseType(typeof(IEnumerable<Utilisateur>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<Utilisateur>>> GetUtilisateurs()
         {
-            return await _context.Utilisateurs.ToListAsync();
+            return dataRepository.GetAll();
         }
-
         // GET: api/Utilisateurs/5
         [HttpGet]
-        [ActionName("GetById")]
         [Route("[action]/{id}")]
-        [ProducesResponseType(typeof(Utilisateur), StatusCodes.Status200OK)]
+        [ActionName("GetById")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Utilisateur>> GetById(int id)
+        public async Task<ActionResult<Utilisateur>> GetUtilisateurById(int id)
         {
+            var utilisateur = dataRepository.GetById(id);
             //var utilisateur = await _context.Utilisateurs.FindAsync(id);
-            var utilisateur = await _context.Utilisateurs.SingleOrDefaultAsync(u => u.UtilisateurId == id);
-
             if (utilisateur == null)
             {
-                return NotFound("Id utilisateur inconnu");
+                return NotFound();
             }
-
             return utilisateur;
         }
-
+        // GET: api/Utilisateurs/toto@titi.fr
         [HttpGet]
-        [ActionName("GetByEmail")]
         [Route("[action]/{email}")]
-        [ProducesResponseType(typeof(Utilisateur), StatusCodes.Status200OK)]
+        [ActionName("GetByEmail")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
-        public async Task<ActionResult<Utilisateur>> GetByEmail(string email)
+        public async Task<ActionResult<Utilisateur>> GetUtilisateurByEmail(string email)
         {
-            var utilisateur = await _context.Utilisateurs.SingleOrDefaultAsync(u => u.Mail == email);
-
+            var utilisateur = await dataRepository.GetByStringAsync(email);
             if (utilisateur == null)
             {
-                return NotFound("Id utilisateur inconnu");
+                return NotFound();
             }
-
             return utilisateur;
         }
+
         // PUT: api/Utilisateurs/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PutUtilisateur(int id, Utilisateur utilisateur)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
             if (id != utilisateur.UtilisateurId)
             {
                 return BadRequest();
             }
-
-            _context.Entry(utilisateur).State = EntityState.Modified;
-
-            try
+            var userToUpdate = dataRepository.GetById(id);
+            if (userToUpdate == null)
             {
-                await _context.SaveChangesAsync();
+                return NotFound();
             }
-            catch (DbUpdateConcurrencyException)
+            else
             {
-                if (!UtilisateurExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                await dataRepository.UpdateAsync(userToUpdate.Value, utilisateur);
+                return NoContent();
             }
-
-            return NoContent();
         }
-
         // POST: api/Utilisateurs
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        [ProducesResponseType(typeof(Utilisateur), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<Utilisateur>> PostUtilisateur(Utilisateur utilisateur)
         {
@@ -115,12 +96,23 @@ namespace API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            _context.Utilisateurs.Add(utilisateur);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetUtilisateur", new { id = utilisateur.UtilisateurId }, utilisateur);
+            await dataRepository.AddAsync(utilisateur);
+            return CreatedAtAction("GetById", new { id = utilisateur.UtilisateurId }, utilisateur); // GetById : nom de l’action
         }
-
+        // DELETE: api/Utilisateurs/5
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteUtilisateur(int id)
+        {
+            var utilisateur = dataRepository.GetById(id);
+            if (utilisateur == null)
+            {
+                return NotFound();
+            }
+            await dataRepository.DeleteAsync(utilisateur.Value);
+            return NoContent();
+        }
         // DELETE: api/Utilisateurs/5
         //[HttpDelete("{id}")]
         //public async Task<IActionResult> DeleteUtilisateur(int id)
@@ -136,25 +128,25 @@ namespace API.Controllers
 
         //    return NoContent();
         //}
-        [HttpPatch("{id:int}")]
-        public async Task<ActionResult<Utilisateur>> Patch(int id, [FromBody] JsonPatchDocument<Utilisateur> patchEntity)
-        {
-            //var utilisateur = await _context.Utilisateurs.SingleOrDefaultAsync(u => u.UtilisateurId == id);
+        //[HttpPatch("{id:int}")]
+        //public async Task<ActionResult<Utilisateur>> Patch(int id, [FromBody] JsonPatchDocument<Utilisateur> patchEntity)
+        //{
+        //    //var utilisateur = await _context.Utilisateurs.SingleOrDefaultAsync(u => u.UtilisateurId == id);
 
-            var entity = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.UtilisateurId == id);
+        //    var entity = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.UtilisateurId == id);
 
-            if (entity == null)
-            {
-                return NotFound();
-            }
+        //    if (entity == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            patchEntity.ApplyTo(entity, ModelState); // Must have Microsoft.AspNetCore.Mvc.NewtonsoftJson installed
+        //    patchEntity.ApplyTo(entity, ModelState); // Must have Microsoft.AspNetCore.Mvc.NewtonsoftJson installed
 
-            return entity;
-        }
-        private bool UtilisateurExists(int id)
-        {
-            return _context.Utilisateurs.Any(e => e.UtilisateurId == id);
-        }
+        //    return entity;
+        //}
+        //private bool UtilisateurExists(int id)
+        //{
+        //    return _context.Utilisateurs.Any(e => e.UtilisateurId == id);
+        //}
     }
 }
