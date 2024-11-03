@@ -9,6 +9,8 @@ using API.Models.EntityFramework;
 using Microsoft.AspNetCore.JsonPatch;
 using API.Models.DataManager;
 using API.Models.Repository;
+using API.Models.DTO;
+using AutoMapper;
 
 namespace API.Controllers
 {
@@ -19,16 +21,19 @@ namespace API.Controllers
         //private readonly UtilisateurManager utilisateurmanager;
         //private readonly SeriesDbContext _context;
         private readonly IDataRepository<Utilisateur> dataRepository;
-
-        public UtilisateursController(IDataRepository<Utilisateur> dataRepo)
+        private readonly IMapper mapper;
+        public UtilisateursController(IDataRepository<Utilisateur> dataRepo, IMapper mapper)
         {
             dataRepository = dataRepo;
+            this.mapper = mapper; 
         }
+
         // GET: api/Utilisateurs
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Utilisateur>>> GetUtilisateurs()
+        public async Task<ActionResult<IEnumerable<UtilisateurDTO>>> GetUtilisateurs()
         {
-            return await dataRepository.GetAllAsync();
+            var utilisateurs = await dataRepository.GetAllAsync();
+            return Ok(mapper.Map<IEnumerable<Utilisateur>>(utilisateurs.Value));
         }
         // GET: api/Utilisateurs/5
         [HttpGet]

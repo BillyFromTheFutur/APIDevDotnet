@@ -17,6 +17,8 @@ using System.Text.RegularExpressions;
 using API.Models.DataManager;
 using API.Models.Repository;
 using Moq;
+using AutoMapper;
+using API.Models.DTO;
 
 namespace API.Controllers.Tests
 {
@@ -28,6 +30,8 @@ namespace API.Controllers.Tests
         private IDataRepository<Utilisateur> dataRepository;
         public UtilisateursControllerTests()
         {
+            var configuration = new MapperConfiguration(cfg =>
+                    cfg.CreateMap<Utilisateur, UtilisateurDTO>());
             var builder = new DbContextOptionsBuilder<SeriesDbContext>().UseNpgsql("Server=localhost;port=5432;Database=SeriesDB;uid=postgres;password=postgres;");
             _context = new SeriesDbContext(builder.Options);
             dataRepository = new UtilisateurManager(_context);
