@@ -1,0 +1,108 @@
+﻿@page "/recherche"
+@using Application_Webassembly_Blazo.Models
+@using Application_Webassembly_Blazo.Services
+@inject IService<Utilisateur> UtilisateurService
+
+<h3>Recherche d'utilisateur</h3>
+
+<form method="post" @onsubmit="Submit" class="mb-4">
+    <AntiforgeryToken />
+    <div>
+        <label>
+            Email:
+            <InputText @bind-Value="mail" class="form-control" />
+        </label>
+    </div>
+    <div>
+        <button type="submit" class="btn btn-primary mt-2">Rechercher</button>
+    </div>
+</form>
+
+@if (user != null)
+{
+    <h3>Modifier les informations de l'utilisateur</h3>
+    <form @onsubmit="SaveChanges">
+        <div class="form-group">
+            <label for="nom">Nom :</label>
+            <InputText @bind-Value="user.Nom" class="form-control" id="nom" />
+        </div>
+
+        <div class="form-group">
+            <label for="prenom">Prénom :</label>
+            <InputText @bind-Value="user.Prenom" class="form-control" id="prenom" />
+        </div>
+
+        <div class="form-group">
+            <label for="mobile">Mobile :</label>
+            <InputText @bind-Value="user.Mobile" class="form-control" id="mobile" />
+        </div>
+
+        <div class="form-group">
+            <label for="mail">Email :</label>
+            <InputText @bind-Value="user.Mail" class="form-control" id="mail" />
+        </div>
+
+        <div class="form-group">
+            <label for="pwd">Mot de passe :</label>
+            <InputText @bind-Value="user.Pwd" class="form-control" id="pwd" type="password" />
+        </div>
+
+        <div class="form-group">
+            <label for="rue">Rue :</label>
+            <InputText @bind-Value="user.Rue" class="form-control" id="rue" />
+        </div>
+
+        <div class="form-group">
+            <label for="codepostal">Code Postal :</label>
+            <InputText @bind-Value="user.CodePostal" class="form-control" id="codepostal" />
+        </div>
+
+        <div class="form-group">
+            <label for="ville">Ville :</label>
+            <InputText @bind-Value="user.Ville" class="form-control" id="ville" />
+        </div>
+
+        <div class="form-group">
+            <label for="pays">Pays :</label>
+            <InputText @bind-Value="user.Pays" class="form-control" id="pays" />
+        </div>
+
+        <div class="form-group">
+            <label for="latitude">Latitude :</label>
+            <InputNumber @bind-Value="user.Latitude" class="form-control" id="latitude" />
+        </div>
+
+        <div class="form-group">
+            <label for="longitude">Longitude :</label>
+            <InputNumber @bind-Value="user.Longitude" class="form-control" id="longitude" />
+        </div>
+
+        <div class="form-group">
+            <label for="datecreation">Date de création :</label>
+            <InputDate @bind-Value="user.DateCreation" class="form-control" id="datecreation" />
+        </div>
+
+        <button type="submit" class="btn btn-success mt-3">Enregistrer les modifications</button>
+    </form>
+}
+
+@code {
+    private string? mail { get; set; }
+    private Utilisateur? user { get; set; }
+
+    private async Task Submit()
+    {
+        if (!string.IsNullOrEmpty(mail))
+        {
+            user = await UtilisateurService.GetByStringAsync("Utilisateurs", mail);
+        }
+    }
+
+    private async Task SaveChanges()
+    {
+        if (user != null)
+        {
+            await UtilisateurService.PutAsync("Utilisateurs/"+user.UtilisateurId.ToString(), user);
+        }
+    }
+}

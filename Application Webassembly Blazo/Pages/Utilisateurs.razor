@@ -1,0 +1,44 @@
+﻿@page "/utilisateurs"
+@using Application_Webassembly_Blazo.Models
+@using Application_Webassembly_Blazo.Services
+@inject IService<Utilisateur> UtilisateurService
+
+<PageTitle>Utilisateurs</PageTitle>
+
+<h1>Liste des Utilisateurs</h1>
+
+@if (utilisateurs == null)
+{
+    <p><em>Chargement en cours...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var utilisateur in utilisateurs)
+            {
+                <tr>
+                    <td>@utilisateur.Nom</td>
+                    <td>@utilisateur.Prenom</td>
+                    <td>@utilisateur.Mail</td>
+                    <td>@utilisateur.Mobile</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Utilisateur>? utilisateurs;
+
+   
+    protected override async Task OnInitializedAsync() => utilisateurs = await UtilisateurService.GetAllAsync("Utilisateurs");
+}

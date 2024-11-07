@@ -1,0 +1,39 @@
+﻿<div class="">
+    <div class="">
+        <a class="" href="">Application Webassembly Blazo</a>
+        <button title="Navigation menu" class="" @onclick="ToggleNavMenu">
+            <span class=""></span>
+        </button>
+    </div>
+</div>
+
+<div class="">
+    <nav class="">
+        <div class="">
+            <NavLink class="" href="" Match="NavLinkMatch.All">
+                <span class="" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <div class="">
+            <NavLink class="" href="utilisateurs">
+                <span class="" aria-hidden="true"></span> Utilisateurs
+            </NavLink>
+        </div>
+        <div class="">
+            <NavLink class="" href="recherche">
+                <span class="" aria-hidden="true"></span> Recherche
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

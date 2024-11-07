@@ -45,7 +45,7 @@ namespace API.Models.DataManager
             utilisateur.Longitude = entity.Longitude;
             utilisateur.Pwd = entity.Pwd;
             utilisateur.Mobile = entity.Mobile;
-            utilisateur.NotesUtilisateur = entity.NotesUtilisateur;
+            //utilisateur.NotesUtilisateur = entity.NotesUtilisateur;
             await seriesDbContext.SaveChangesAsync();
         }
         public async Task DeleteAsync(Utilisateur utilisateur)
